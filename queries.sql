@@ -82,3 +82,18 @@ end as day_of_week, -- переводим все номера дней неде�
 income
 from sales3
 ;
+
+-- 6 ШАГ
+-- 1 отчет
+select 
+case 
+	when age between 16 and 25 then '16-25' 
+	when age between 26 and 40 then '26-40'
+	when age >= 41 then '40+'
+end as age_category, -- создаем колонку с категориями возрастов
+count (age) as age_count  -- считаем кол-во клиентов по возрастным категориям
+from customers c 
+group by 1
+order by 1
+;
+
