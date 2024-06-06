@@ -97,3 +97,27 @@ group by 1
 order by 1
 ;
 
+-- 2 отчет
+select to_char (s.sale_date, 'yyyy-mm') as selling_month, --убираем из даты день, оставляя год и месяц
+count (distinct s.customer_id) as total_customers, --считаем уникальных покупателей
+sum (p.price * s.quantity) as income --считаем выручку за месяц
+from sales s
+left join products p
+  on s.product_id = p.product_id  -- соединяем таблицу products для значения price из него
+group by 1
+order by 1 -- сортируем по дате
+;
+
+-- 3 отчет
+select concat (c.first_name, ' ', c.last_name) as customer,  -- склеиваем имя и фамилия покупателя
+sale_date,
+concat (e.first_name, ' ', e.last_name) as seller -- склеиваем имя и фамилию продавца
+from sales s
+left join customers c -- из этой таблицы берем имена клиентов
+  on s.customer_id = c.customer_id
+left join employees e -- из этой имена продавцов
+  on s.sales_person_id = e.employee_id 
+left join products p -- эта нужна для фильтрации
+  on s.product_id = p.product_id
+where p.price = 0
+;
