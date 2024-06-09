@@ -4,30 +4,22 @@ from customers c
 ;
 
 
---5 ШАГ
--- 1 отчет
-with sales1 as (
-select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию работников
+-- 5 ШАГ
+-- 1 отчет top_10_total_income
+select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавца
 count(s.sales_id) as operations, --считаем операции
-p.price * s.quantity as income -- считаем выручку
+floor(sum(p.price * s.quantity)) as income --считаем выручку
 from sales s
 left join employees e
-  on s.sales_person_id = e.employee_id
+  on s.sales_person_id = e.employee_id  --джойним эту таблицу для имен продавцов
 left join products p
-  on s.product_id = p.product_id 
-group by 1, 3
-)
-
-select seller,
-sum(operations) as operations, --суммируем операции по каждому работнику
-floor(sum(income)) as income -- суммируем выручку по каждому работнику
-from sales1 
+  on s.product_id = p.product_id --а эту для цен товаров
 group by 1
-order by 3 desc --сортируем выручку по убыванию
-limit 10 -- сортируем лимит строк
+order by 3 desc --сортируем по выручке по убыванию
+limit 10 --показываем только первые 10
 ;
 
--- 2 отчет
+-- 2 отчет lowest_average_income
 with sales2 as (
 with saless as (
 select concat(e.first_name, ' ', e.last_name) as seller,
@@ -55,36 +47,27 @@ where floor(income/operations) < (select avg(floor(income/operations)) from sale
 order by 2
 ;
 
--- 3 отчет
+-- 3 отчет day_of_the_week_income
 with sales3 as (
-select concat(e.first_name, ' ', e.last_name) as seller,
-floor(sum(p.price * s.quantity)) as income,
-extract(dow from s.sale_date) + 1 as num_week -- переводим дату в номер дня недели, +1 для того, что бы неделя начиналась с понедельника, а не воскресенья
+select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+to_char(s.sale_date, 'day')  as day_of_week, --из даты берем название дня недели
+floor(sum(p.price * s.quantity)) as income, --считаем выручку
+extract(dow from s.sale_date) + 1 as num_week --из даты берем порядковый номер дня недели для сортировки и прибавляем единицу, для того чтобы неделя начиналась с понедельника
 from sales s
 left join employees e
-  on s.sales_person_id = e.employee_id
+  on s.sales_person_id = e.employee_id --джойним эту таблицу для имен продавцов
 left join products p
-  on s.product_id = p.product_id
-group by 1, 3
-order by 3, 1
+  on s.product_id = p.product_id  --а из этой берем цены товаров
+group by 1, 2, 4
+order by 4, 1 --сортируем по порядковому номеру дня недели и продавцу
 )
 
-select seller,
-case
-	when num_week = 1 then 'monday'
-	when num_week = 2 then 'tuesday'
-	when num_week = 3 then 'wednesday'
-	when num_week = 4 then 'thursday'
-	when num_week = 5 then 'friday'
-	when num_week = 6 then 'saturday'
-	when num_week = 7 then 'sunday'
-end as day_of_week, -- переводим все номера дней недель в их названия
-income
+select seller, day_of_week, income --используем CTE для того, чтобы отсортировать таблицу по порядковому номеру дня недели, но не отображать этот столбец
 from sales3
 ;
 
 -- 6 ШАГ
--- 1 отчет
+-- 1 отчет age_groups
 select 
 case 
 	when age between 16 and 25 then '16-25' 
@@ -97,7 +80,7 @@ group by 1
 order by 1
 ;
 
--- 2 отчет
+-- 2 отчет customers_by_month
 select to_char (s.sale_date, 'yyyy-mm') as selling_month, --убираем из даты день, оставляя год и месяц
 count (distinct s.customer_id) as total_customers, --считаем уникальных покупателей
 sum (p.price * s.quantity) as income --считаем выручку за месяц
@@ -108,16 +91,25 @@ group by 1
 order by 1 -- сортируем по дате
 ;
 
--- 3 отчет
-select concat (c.first_name, ' ', c.last_name) as customer,  -- склеиваем имя и фамилия покупателя
-sale_date,
-concat (e.first_name, ' ', e.last_name) as seller -- склеиваем имя и фамилию продавца
+-- 3 отчет special_offer
+with sp_of as (
+select c.customer_id, --берем id покупателя для последующей фильтрации
+concat (c.first_name, ' ', c.last_name) as customer, --склеиваем имя и фамилию покупателей
+sale_date, --дата покупки
+concat (e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+row_number() over (partition by concat (c.first_name, ' ', c.last_name) order by sale_date),  --нумеруем покупки покупателей по дате
+p.price --берем цену, будем использовать для фильтрации
 from sales s
-left join customers c -- из этой таблицы берем имена клиентов
-  on s.customer_id = c.customer_id
-left join employees e -- из этой имена продавцов
-  on s.sales_person_id = e.employee_id 
-left join products p -- эта нужна для фильтрации
+left join customers c --джойним эту таблицу для имен клиентов
+  on s.customer_id = c.customer_id 
+left join employees e 
+  on s.sales_person_id = e.employee_id --джойним эту таблицу для имен продавцов
+left join products p  --джойним эту таблицу для цен
   on s.product_id = p.product_id
-where p.price = 0
+)
+
+select customer, sale_date, seller --выводим имена покупателей, дату покупки и имя продавца
+from sp_of
+where row_number = 1 and price = 0 --сортируем по первой покупке И цене = 0(акция)
+order by customer_id --сортируем по id покупателей
 ;
