@@ -50,7 +50,7 @@ with sales3 as (
         --из даты берем название дня недели
         to_char(s.sale_date, 'day') as day_of_week,
         floor(sum(p.price * s.quantity)) as income, --считаем выручку
-        extract(dow from s.sale_date) + 1 as num_week 
+        extract(dow from s.sale_date) + 1 as num_week
     --из даты берем порядковый номер дня недели для сортировки и прибавляем
     --единицу, для того чтобы неделя начиналась с понедельника
     from sales as s
@@ -100,16 +100,16 @@ order by 1; -- сортируем по дате
 -- 3 отчет special_offer
 with sp_of as (
     select
-        c.customer_id, --берем id покупателя для последующей фильтрации
-        --склеиваем имя и фамилию покупателей
-        s.sale_date,
-        p.price, --дата покупки
-        --склеиваем имя и фамилию продавцов
+        c.customer_id,
+        --берем id покупателя для последующей фильтрации
+        s.sale_date, --дата покупки
+        p.price, --берем цену, будем использовать для фильтрации
         concat(c.first_name || ' ' || c.last_name) as customer,
-        --нумеруем покупки покупателей по дате
+       --склеиваем имя и фамилию клиентов
         concat(e.first_name || ' ' || e.last_name) as seller,
-        --берем цену, будем использовать для фильтрации
-        row_number() over (partition by c.customer_id order by s.sale_date) as rn
+        --склеиваем имя и фамилию продавцов
+        row_number() over(partition by c.customer_id order by s.sale_date) as rn
+        --нумеруем покупки покупателей по дате
     from sales as s
     left join customers as c --джойним эту таблицу для имен клиентов
         on s.customer_id = c.customer_id
@@ -118,6 +118,7 @@ with sp_of as (
         on s.sales_person_id = e.employee_id
     left join products as p  --джойним эту таблицу для цен
         on s.product_id = p.product_id
+    order by c.customer_id
 )
 
 --выводим имена покупателей, дату покупки и имя продавца
@@ -127,5 +128,4 @@ select
     sp_of.seller
 from sp_of
 --сортируем по первой покупке И цене = 0(акция)
-where sp_of.row_number = 1 and sp_of.price = 0
-order by sp_of.customer_id; --сортируем по id покупателей
+where sp_of.rn = 1 and sp_of.price = 0; --сортируем по id покупателей
