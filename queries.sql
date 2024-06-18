@@ -98,36 +98,34 @@ group by 1
 order by 1; -- сортируем по дате
 
 -- 3 отчет special_offer
-with spof as (
-    with sp_of as (
-        select
-            c.customer_id,
-            s.sale_date,
-            p.price,
-            concat(c.first_name || ' ' || c.last_name) as customer,
-            concat(e.first_name || ' ' || e.last_name) as seller,
-            row_number() over(partition by c.customer_id order by s.sale_date) as rn
-
-        from sales as s
-        left join customers as c 
-            on s.customer_id = c.customer_id
-        left join employees as e
-            on s.sales_person_id = e.employee_id
-       left join products as p
-            on s.product_id = p.product_id
-    )
-
+with sp_of as (
     select
-        sp_of.customer_id,
-        sp_of.customer,
-        sp_of.sale_date,
-        sp_of.seller
-    from sp_of
-    where sp_of.rn = 1 and sp_of.price = 0
+        c.customer_id,
+        --берем id покупателя для последующей фильтрации
+        s.sale_date, --дата покупки
+        p.price, --берем цену, будем использовать для фильтрации
+        concat(c.first_name || ' ' || c.last_name) as customer,
+        --склеиваем имя и фамилию клиентов
+        concat(e.first_name || ' ' || e.last_name) as seller,
+        --склеиваем имя и фамилию продавцов
+        row_number() over (partition by c.customer_id order by s.sale_date)
+        as rn
+        --нумеруем покупки покупателей по дате
+    from sales as s
+    left join customers as c --джойним эту таблицу для имен клиентов
+        on s.customer_id = c.customer_id
+    left join employees as e
+        --джойним эту таблицу для имен продавцов
+        on s.sales_person_id = e.employee_id
+    left join products as p  --джойним эту таблицу для цен
+        on s.product_id = p.product_id
+    order by c.customer_id --сортируем по id покупателей
 )
+
+--выводим имена покупателей, дату покупки и имя продавца
 select
-    spof.customer,
-    spof.sale_date,
-    spof.seller
-from spof
-order by spof.customer_id;
+    sp_of.customer,
+    sp_of.sale_date,
+    sp_of.seller
+from sp_of
+where sp_of.rn = 1 and sp_of.price = 0;
