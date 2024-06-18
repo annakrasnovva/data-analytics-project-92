@@ -21,25 +21,21 @@ limit 10 --показываем только первые 10
 
 -- 2 отчет lowest_average_income
 with sales2 as (
-    select
-        --склеиваем имя и фамилию продавцов
-        concat(e.first_name, ' ', e.last_name) as seller,
-        --считаем среднюю выручку за сделку каждого продавца
-        floor(avg(p.price * s.quantity)) as average_income
-    from sales as s
-    left join employees as e
-        --из этой таблицы берем имена и фамилии продавцов
-        on s.sales_person_id = e.employee_id
-    left join products as p
-        on s.product_id = p.product_id --из этой цены на товары
-    group by 1 --группировка по продавцам
+select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+floor(avg(p.price * s.quantity)) as average_income --считаем среднюю выручку за сделку каждого продавца
+from sales s
+left join employees e
+  on s.sales_person_id = e.employee_id  --из этой таблицы берем имена и фамилии продавцов
+left join products p
+  on s.product_id = p.product_id --из этой цены на товары
+group by 1 --группировка по продавцам
 )
 
 select *
 from sales2
---сортируем по ср. выручке за сделку меньше чем ср. выручка по всем продавцам
-where average_income < (select avg(average_income) from sales2)
-order by 2; --сортируем по ср. выручке по возрастанию
+where average_income < (select avg(average_income) from sales2) --сортируем по ср. выручке за сделку меньше чем ср. выручка по всем продавцам
+order by 2 --сортируем по ср. выручке по возрастанию
+;
 
 -- 3 отчет day_of_the_week_income
 with sales3 as (
