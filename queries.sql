@@ -6,7 +6,7 @@ from customers c
 
 -- 5 ШАГ
 -- 1 отчет top_10_total_income
-select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавца
+select concat(e.first_name||' '||e.last_name) as seller, --склеиваем имя и фамилию продавца
 count(s.sales_id) as operations, --считаем операции
 floor(sum(p.price * s.quantity)) as income --считаем выручку
 from sales s
@@ -39,7 +39,7 @@ order by 2 --сортируем по ср. выручке по возраста�
 
 -- 3 отчет day_of_the_week_income
 with sales3 as (
-select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+select concat(e.first_name||' '||e.last_name) as seller, --склеиваем имя и фамилию продавцов
 to_char(s.sale_date, 'day')  as day_of_week, --из даты берем название дня недели
 floor(sum(p.price * s.quantity)) as income, --считаем выручку
 extract(dow from s.sale_date) + 1 as num_week --из даты берем порядковый номер дня недели для сортировки и прибавляем единицу, для того чтобы неделя начиналась с понедельника
@@ -84,9 +84,9 @@ order by 1 -- сортируем по дате
 -- 3 отчет special_offer
 with sp_of as (
 select c.customer_id, --берем id покупателя для последующей фильтрации
-concat (c.first_name, ' ', c.last_name) as customer, --склеиваем имя и фамилию покупателей
+concat (c.first_name||' '||c.last_name) as customer, --склеиваем имя и фамилию покупателей
 sale_date, --дата покупки
-concat (e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+concat (e.first_name||' '||e.last_name) as seller, --склеиваем имя и фамилию продавцов
 row_number() over (partition by c.customer_id order by sale_date),  --нумеруем покупки покупателей по дате
 p.price --берем цену, будем использовать для фильтрации
 from sales s
