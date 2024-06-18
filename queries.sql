@@ -119,7 +119,7 @@ with sp_of as (
         on s.sales_person_id = e.employee_id
     left join products as p  --джойним эту таблицу для цен
         on s.product_id = p.product_id
-    order by c.customer_id --сортируем по id покупателей
+    order by 1 --сортируем по id покупателей
 )
 
 --выводим имена покупателей, дату покупки и имя продавца
