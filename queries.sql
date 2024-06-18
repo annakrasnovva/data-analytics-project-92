@@ -50,7 +50,9 @@ with sales3 as (
         --из даты берем название дня недели
         to_char(s.sale_date, 'day') as day_of_week,
         floor(sum(p.price * s.quantity)) as income, --считаем выручку
-        extract(dow from s.sale_date) + 1 as num_week --из даты берем порядковый номер дня недели для сортировки и прибавляем единицу, для того чтобы неделя начиналась с понедельника
+        extract(dow from s.sale_date) + 1 as num_week 
+    --из даты берем порядковый номер дня недели для сортировки и прибавляем единицу,
+    --для того чтобы неделя начиналась с понедельника
     from sales as s
     left join employees as e
         --джойним эту таблицу для имен продавцов
@@ -64,7 +66,8 @@ with sales3 as (
 select
     seller,
     day_of_week,
-    income --используем CTE для того, чтобы отсортировать таблицу по порядковому номеру дня недели, но не отображать этот столбец
+    income --используем CTE для того, чтобы отсортировать таблицу
+    --по порядковому номеру дня недели, но не отображать этот столбец
 from sales3;
 
 -- 6 ШАГ
@@ -99,7 +102,7 @@ with sp_of as (
     select
         c.customer_id, --берем id покупателя для последующей фильтрации
         --склеиваем имя и фамилию покупателей
-        sale_date,
+        s.sale_date,
         p.price, --дата покупки
         --склеиваем имя и фамилию продавцов
         concat(c.first_name || ' ' || c.last_name) as customer,
@@ -125,4 +128,4 @@ select
 from sp_of
 --сортируем по первой покупке И цене = 0(акция)
 where row_number = 1 and price = 0
-order by customer_id; --сортируем по id покупателей
+order by c.customer_id; --сортируем по id покупателей
