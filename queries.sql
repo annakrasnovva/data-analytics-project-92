@@ -100,7 +100,7 @@ order by 1; -- сортируем по дате
 -- 3 отчет special_offer
 with sp_of as (
     select
-        c.customer_id,
+        sales.customer_id,
         --берем id покупателя для последующей фильтрации
         s.sale_date, --дата покупки
         p.price, --берем цену, будем использовать для фильтрации
@@ -119,7 +119,7 @@ with sp_of as (
         on s.sales_person_id = e.employee_id
     left join products as p  --джойним эту таблицу для цен
         on s.product_id = p.product_id
-    order by customers.customer_id asc --сортируем по id покупателей
+    order by sales.customer_id --сортируем по id покупателей
 )
 
 --выводим имена покупателей, дату покупки и имя продавца
