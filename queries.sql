@@ -128,5 +128,6 @@ select
     sp_of.sale_date,
     sp_of.seller
 from sp_of
-where sp_of.rn = 1 and sp_of.price = 0;
+where sp_of.rn = 1 and sp_of.price = 0
+order by sp_of.customer_id; --сортируем по id покупателей
 --сортируем по первой покупке И цене = 0(акция)
