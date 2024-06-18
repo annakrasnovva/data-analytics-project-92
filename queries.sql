@@ -21,7 +21,7 @@ limit 10 --показываем только первые 10
 
 -- 2 отчет lowest_average_income
 with sales2 as (
-select concat(e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
+select concat(e.first_name||' '||e.last_name) as seller, --склеиваем имя и фамилию продавцов
 floor(avg(p.price * s.quantity)) as average_income --считаем среднюю выручку за сделку каждого продавца
 from sales s
 left join employees e
@@ -87,7 +87,7 @@ select c.customer_id, --берем id покупателя для последу
 concat (c.first_name, ' ', c.last_name) as customer, --склеиваем имя и фамилию покупателей
 sale_date, --дата покупки
 concat (e.first_name, ' ', e.last_name) as seller, --склеиваем имя и фамилию продавцов
-row_number() over (partition by concat (c.first_name, ' ', c.last_name) order by sale_date),  --нумеруем покупки покупателей по дате
+row_number() over (partition by c.customer_id order by sale_date),  --нумеруем покупки покупателей по дате
 p.price --берем цену, будем использовать для фильтрации
 from sales s
 left join customers c --джойним эту таблицу для имен клиентов
