@@ -105,10 +105,11 @@ with sp_of as (
         s.sale_date, --дата покупки
         p.price, --берем цену, будем использовать для фильтрации
         concat(c.first_name || ' ' || c.last_name) as customer,
-       --склеиваем имя и фамилию клиентов
+        --склеиваем имя и фамилию клиентов
         concat(e.first_name || ' ' || e.last_name) as seller,
         --склеиваем имя и фамилию продавцов
-        row_number() over(partition by c.customer_id order by s.sale_date) as rn
+        row_number() over (partition by c.customer_id order by s.sale_date)
+        as rn
         --нумеруем покупки покупателей по дате
     from sales as s
     left join customers as c --джойним эту таблицу для имен клиентов
@@ -118,7 +119,7 @@ with sp_of as (
         on s.sales_person_id = e.employee_id
     left join products as p  --джойним эту таблицу для цен
         on s.product_id = p.product_id
-    order by c.customer_id
+    order by c.customer_id asc --сортируем по id покупателей
 )
 
 --выводим имена покупателей, дату покупки и имя продавца
@@ -127,5 +128,4 @@ select
     sp_of.sale_date,
     sp_of.seller
 from sp_of
---сортируем по первой покупке И цене = 0(акция)
-where sp_of.rn = 1 and sp_of.price = 0; --сортируем по id покупателей
+where sp_of.rn = 1 and sp_of.price = 0; --сортируем по первой покупке И цене = 0(акция)
