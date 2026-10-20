@@ -50,7 +50,7 @@ with sales3 as (
         --из даты берем название дня недели
         to_char(s.sale_date, 'day') as day_of_week,
         floor(sum(p.price * s.quantity)) as income, --считаем выручку
-        extract(dow from s.sale_date) + 1 as num_week
+        extract(isodow from s.sale_date) as num_week
     --из даты берем порядковый номер дня недели для сортировки и прибавляем
     --единицу, для того чтобы неделя начиналась с понедельника
     from sales as s
