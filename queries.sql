@@ -1,9 +1,3 @@
---4 ШАГ
-select count(customer_id) --считаем кол-во покупателей по уникальным id
-from customers;
-
-
--- 5 ШАГ
 -- 1 отчет top_10_total_income
 select
     --склеиваем имя и фамилию продавца
@@ -68,22 +62,22 @@ select
     day_of_week,
     income --используем CTE для того, чтобы отсортировать таблицу
     --по порядковому номеру дня недели, но не отображать этот столбец
-from sales3;
+from sales3
+order by num_week, seller; --доп. сортировка для точности
 
--- 6 ШАГ
--- 1 отчет age_groups
+-- 4 отчет age_groups
 select
     case
-        when age between 16 and 25 then '16-25'
+        when age between 16 and 25 then '16-25' --в условии сказано, что в исходной таблице возраст всех покупателей от 16 лет
         when age between 26 and 40 then '26-40'
-        when age >= 41 then '40+'
+        when age >= 41 then '>40'
     end as age_category, -- создаем колонку с категориями возрастов
     count(age) as age_count  -- считаем кол-во клиентов по возрастным категориям
 from customers
 group by 1
 order by 1;
 
--- 2 отчет customers_by_month
+-- 5 отчет customers_by_month
 select
     --убираем из даты день, оставляя год и месяц
     to_char(s.sale_date, 'yyyy-mm') as selling_month,
@@ -97,7 +91,7 @@ left join products as p
 group by 1
 order by 1; -- сортируем по дате
 
--- 3 отчет special_offer
+-- 6 отчет special_offer
 with sp_of as (
     select
         c.customer_id,
