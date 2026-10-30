@@ -10,7 +10,7 @@ left join employees as e
     on s.sales_person_id = e.employee_id
 left join products as p
     on s.product_id = p.product_id --а эту для цен товаров
-group by 1
+group by 1 -- группируем по ФИО продавцов, т.к. они уникальны
 order by 3 desc --сортируем по выручке по убыванию
 limit 10; --показываем только первые 10
 
@@ -45,8 +45,7 @@ with sales3 as (
         to_char(s.sale_date, 'day') as day_of_week,
         floor(sum(p.price * s.quantity)) as income, --считаем выручку
         extract(isodow from s.sale_date) as num_week
-    --из даты берем порядковый номер дня недели для сортировки и прибавляем
-    --единицу, для того чтобы неделя начиналась с понедельника
+    --получаем номер дня недели: понедельник - 1, воскресенье - 7
     from sales as s
     left join employees as e
         --джойним эту таблицу для имен продавцов
